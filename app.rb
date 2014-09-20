@@ -7,6 +7,45 @@ require 'songkick/oauth2/provider'
 require 'json'
 require 'slim'
 require 'sass'
+require 'sequel'
+
+module DB
+  db = Sequel.connect('sqlite://store.db')
+  db.create_table! :users do
+    primary_key :id
+    String :name, null: false
+    timestamp :mtime
+  end
+  db[:users].insert(name: 'admin', mtime: Time.now)
+  db[:users].insert(name: 'matsu', mtime: Time.now)
+  db[:users].insert(name: 'guest', mtime: Time.now)
+  db.create_table! :rooms do
+    primary_key :id
+    String :name, null: false
+    timestamp :mtime
+  end
+  db[:rooms].insert(name: 'room1', mtime: Time.now)
+  db[:rooms].insert(name: 'room2', mtime: Time.now)
+  db.create_table! :access_rights do
+    primary_key :id
+    foreign_key :user_id, :users
+    foreign_key :room_id, :rooms
+    timestamp :mtime
+  end
+  db[:access_rights].insert(user_id: 1, room_id: 1, mtime: Time.now)
+  db[:access_rights].insert(user_id: 1, room_id: 2, mtime: Time.now)
+  db[:access_rights].insert(user_id: 2, room_id: 1, mtime: Time.now)
+  db.create_table! :messages do
+    primary_key :id
+    String :from
+    String :text
+    foreign_key :room_id, :rooms
+    timestap :mtime
+  end
+  db[:messages].insert(from: 'nick1', text: 'message 1', room_id: 1, mtime: Time.now)
+  db[:messages].insert(from: 'nick2', text: 'message 2', room_id: 2, mtime: Time.now)
+  db[:messages].insert(from: 'nick3', text: 'message 3', room_id: 1, mtime: Time.now)
+end
 
 enable :sessions
 
