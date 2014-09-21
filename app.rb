@@ -59,6 +59,14 @@ module DB
     timestap :mtime
   end
 
+  @db.create_table! :usersetting do
+    primary_key :id
+    int :user_id, unique: true
+    int :send_mail
+    String :mail_address
+    timestap :mtime
+  end
+
   @db[:users].insert(name: 'guest', admin: 0, mtime: Time.now)
   @db[:users].insert(name: 'matsu', admin: 1, mtime: Time.now)
   @db[:users].insert(name: 'other', admin: 0, mtime: Time.now)
@@ -75,10 +83,12 @@ module DB
   @db[:rooms].insert(name: 'public', mtime: Time.now)
   @db[:rooms].insert(name: 'room1', mtime: Time.now)
   @db[:rooms].insert(name: 'room2', mtime: Time.now)
+  @db[:rooms].insert(name: 'room3', mtime: Time.now)
 
   @db[:permissions].insert(role_id: 1, room_id: 1, readable: 1, mtime: Time.now)
   @db[:permissions].insert(role_id: 2, room_id: 1, readable: 1, mtime: Time.now)
   @db[:permissions].insert(role_id: 2, room_id: 2, readable: 1, mtime: Time.now)
+  @db[:permissions].insert(role_id: 2, room_id: 4, readable: 1, mtime: Time.now)
   @db[:permissions].insert(role_id: 3, room_id: 3, readable: 1, mtime: Time.now)
 
   @db[:messages].insert(from: 'nick1', text: 'message 1', room_id: 1, mtime: Time.now)
@@ -143,6 +153,10 @@ end
 
 get '/setting' do
   haml :setting
+end
+
+post '/setting' do
+  redirect to('/setting')
 end
 
 get '/login/denied' do
@@ -223,14 +237,25 @@ __END__
         - room_id = r[:id]
         - if DB::readable? @user_id, room_id
           - msgs = DB::messages.where(:room_id => room_id)
-          - unless msgs.empty?
-            %accordion-group{:heading => "#{r[:name]}"}
-              %ul
-                - msgs.each do |m|
-                  %li= "#{m[:from]}: #{m[:text]}"
+          %accordion-group
+            %accordion-heading
+              = "#{r[:name]}"
+              %span.badge.pull-right= "#{msgs.count}"
+            %ul
+              - msgs.each do |m|
+                %li= "[#{m[:mtime]}] #{m[:from]}: #{m[:text]}"
 
 @@setting
-%p ユーザ設定画面です。
+%h2 ユーザ設定
+%form{:role => "form", :method => 'post', :action => '/setting'}
+  %input{:type => 'hidden', :name => 'user', :value => "#{@user}"}
+  .form-group
+    %label{:for => 'mail'} 一日のまとめをメールで受信します。
+    .input-group#mail
+      %span.input-group-addon
+        %input{:type => "checkbox", :name => "mail"}
+      %input.form-control{:type => "text", :name => "address", :value => "#{@user}@hallab.co.jp"}
+  %button.btn.btn-default.disabled{:type => "submit", :value => "submit"} 設定
 
 @@denied
 %p Access Denied.
