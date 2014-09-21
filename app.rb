@@ -103,10 +103,11 @@ __END__
     %meta{:name => "viewport", :content => "width=device-width, initial-scale=1"}
     %title Chat Room Logger
     %link{:rel => "stylesheet", :href => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"}
-    %script{:src => "https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"}
-    %script{:src => "http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"}
+    %script{:src => "//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"}
+    %script{:src => "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"}
+    %script{:src => "//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-rc.2/angular.js"}
+    %script{:src => "//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-rc.2/angular-route.js"}
     %script{:src => "/ui-bootstrap-tpls-0.11.0.min.js"}
-    %script{:src => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"}
     %script{:src => "/client.js"}
 
     :sass
@@ -137,8 +138,7 @@ __END__
 
 @@top
 - if @user
-  %div{:'ng-model' => "title"}
-    %p{:'ng-bind' => "title"}
+  %div
     %label.checkbox
       %input{:type => "checkbox", :'ng-model' => "oneAtATime"} Open only one at a time
     %accordion{:'close-others' => "oneAtATime"}
