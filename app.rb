@@ -3,7 +3,6 @@
 
 require 'sinatra'
 require 'oauth2'
-require 'songkick/oauth2/provider'
 require 'json'
 require 'haml'
 require 'sass'
@@ -63,11 +62,14 @@ get '/' do
 end
 
 get '/login' do
-  redirect client.auth_code.authorize_url(redirect_uri: redirect_uri)
+  session[:login_key] = SecureRandom.hex(16);
+  redirect client.auth_code.authorize_url(
+    redirect_uri: redirect_uri,
+    state: session[:login_key])
 end
 
 get '/logout' do
-  session[:access_token] = nil
+  session.delete(:user)
   haml :logout
 end
 
@@ -78,7 +80,12 @@ end
 get '/auth/callback' do
   begin
     raise unless params[:code]
-    session[:user] = client.auth_code.get_token(params[:code], redirect_uri: redirect_uri).token
+    raise unless params[:state] == session[:login_key]
+    session.delete(:login_key)
+    token = client.auth_code.get_token(
+      params[:code],
+      redirect_uri: redirect_uri)
+    session[:user] = token.token
     redirect to('/')
   rescue
     session[:user] = nil
@@ -117,7 +124,7 @@ __END__
         :padding 40px 15px
 
   %body{:'ng-controller' => "RoomCtrl"}
-    %div.navbar.navbar-inverse.navbar-fixed-top
+    %div.navbar.navbar-default.navbar-fixed-top
       %div.header
         %a.navbar-brand{:href => "/"} Chat Room Logger
         %ul.nav.navbar-nav.pull-right
@@ -143,6 +150,8 @@ __END__
       %input{:type => "checkbox", :'ng-model' => "oneAtATime"} Open only one at a time
     %accordion{:'close-others' => "oneAtATime"}
       %accordion-group{:heading => "{{room.title}}", :'ng-repeat' => "room in rooms"} {{room.contents}}
+- else
+  %p ログインしてください。
 
 @@denied
 %p Access Denied.
