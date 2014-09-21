@@ -5,7 +5,7 @@ require 'sinatra'
 require 'oauth2'
 require 'songkick/oauth2/provider'
 require 'json'
-require 'slim'
+require 'haml'
 require 'sass'
 require 'sequel'
 require 'sqlite3'
@@ -59,7 +59,7 @@ end
 
 get '/' do
   @user = session[:user]
-  slim :top
+  haml :top
 end
 
 get '/login' do
@@ -68,11 +68,11 @@ end
 
 get '/logout' do
   session[:access_token] = nil
-  slim :logout
+  haml :logout
 end
 
 get '/login/denied' do
-  slim :denied
+  haml :denied
 end
 
 get '/auth/callback' do
@@ -96,66 +96,56 @@ end
 __END__
 
 @@layout
-doctype html
-html lang="ja"
-  head
-    meta charset="utf-8"
-    meta http-equiv="X-UA-Compatible" content="IE=edge"
-    meta name="viewport" content="width=device-width, initial-scale=1"
-    title
-      | Chat Room Logger
+%html{:'ng-app' => "app"}
+  %head
+    %meta{:charset => "utf-8"}
+    %meta{:'http-equiv' => "X-UA-Compatible", :content => "IE=edge"}
+    %meta{:name => "viewport", :content => "width=device-width, initial-scale=1"}
+    %title Chat Room Logger
+    %link{:rel => "stylesheet", :href => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"}
+    %script{:src => "https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"}
+    %script{:src => "http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"}
+    %script{:src => "/ui-bootstrap-tpls-0.11.0.min.js"}
+    %script{:src => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"}
+    %script{:src => "/client.js"}
 
-    link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"
+    :sass
+      body
+        :padding-top 50px
+      #content
+        :padding 40px 15px
 
-  body
-    div.container
-      div.header
-        ul.nav.navbar-nav.pull-right
+  %body{:'ng-controller' => "RoomCtrl"}
+    %div.navbar.navbar-inverse.navbar-fixed-top
+      %div.header
+        %a.navbar-brand{:href => "/"} Chat Room Logger
+        %ul.nav.navbar-nav.pull-right
           - if @user
-            li.dropdown
-              a#user.dropdown-toggle.active role="button" data-toggle="dropdown"
-               | #{@user}さん 
-               span.caret
-              ul.dropdown-menu role="menu" aria-lablledby="user"
-                li role="presentation"
-                  a role="menuitem" href="/logout" Logout
+            %li.dropdown
+              %a.dropdown-toggle.active#user{:role => "button", :'data-toggle' => "dropdown"}
+                = "#{@user} さん"
+                %span.caret
+              %ul.dropdown-menu{:role => "menu", :'aria-lablledby' => "user"}
+                %li{:role => "presentation"}
+                  %a{:role => "menuitem", :href => "/logout"} Logout
           - else
-            li.active
-              a href="/login" Login
-        h3.text-muted Chat Room Logger
+            %li.active
+              %a{:href => "/login"} Login
 
-    div.container
-      div.starter-template
-        == yield
-
-    script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"
-    script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"
+    %div.container#content
+      = yield
 
 @@top
-doctype html
-div.dropdown
-  button#room.btn.btn-default.dropdown-toggle type="button" data-toggle="dropdown"
-    | Room 1 
-    span.caret
-  ul.dropdown-menu role="menu" aria-labelledby="room"
-    li.presentation
-      a role="menuitem" href="#" Room 1
-    li.presentation
-      a role="menuitem" href="#" Room 2
-    li.presentation
-      a role="menuitem" href="#" Room 3
-ul
- li messsage
- li messsage
- li messsage
- li messsage
- li messsage
- li .. 
+- if @user
+  %div{:'ng-model' => "title"}
+    %p{:'ng-bind' => "title"}
+    %label.checkbox
+      %input{:type => "checkbox", :'ng-model' => "oneAtATime"} Open only one at a time
+    %accordion{:'close-others' => "oneAtATime"}
+      %accordion-group{:heading => "{{room.title}}", :'ng-repeat' => "room in rooms"} {{room.contents}}
 
 @@denied
-doctype html
-h2 Access Denied.
+%p Access Denied.
 
 @@logout
-doctype html
-h3 ログアウトしました。
+%p ログアウトしました。
