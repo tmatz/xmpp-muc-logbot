@@ -98,53 +98,17 @@ module DB
   public
 
   def self.get_user_id(username)
-    users.where(:name => username).get(:id)
+    @db[:users].where(:name => username).get(:id)
   end
 
   def self.readable?(user_id, room_id)
-    ! userroles.where(:user_id => user_id).
+    ! @db[:userroles].where(:user_id => user_id, :join => 1).
       join(:permissions, :role_id => :role_id).
-      where(:readable => 1).empty?
-  end
-
-  class User < Sequel::Model
-  end
-
-  class Role < Sequel::Model
-  end
-
-  class Userrole < Sequel::Model
-  end
-
-  class Room < Sequel::Model
-  end
-
-  class Permission < Sequel::Model
-  end
-
-  class Message < Sequel::Model
-  end
-
-  public
-
-  def self.users
-    @users ||= @db[:users]
-  end
-
-  def self.roles
-    @roles ||= @db[:roles]
-  end
-
-  def self.userroles
-    @userroles ||= @db[:userroles]
+      where(:room_id => room_id, :readable => 1).empty?
   end
 
   def self.rooms
     @rooms ||= @db[:rooms]
-  end
-
-  def self.permissions
-    @permissions ||= @db[:permissions]
   end
 
   def self.messages
@@ -162,33 +126,30 @@ def client
   $client ||= OAuth2::Client.new(CLIENT, CLIENT_SECRET, site: 'http://localhost:4000/')
 end
 
-get '/' do
-  @user = session[:user]
-  begin
-    @user_id = get_user_id(@user)
-  rescue
-    @user_id = DB::GUEST_ID
+before %r{^(?!/login)} do
+  unless @user = session[:user]
+    session[:login_key] = SecureRandom.hex(16);
+    redirect client.auth_code.authorize_url(
+      redirect_uri: redirect_uri,
+      state: session[:login_key])
   end
+  @user_id = DB::get_user_id(@user) || DB::GUEST_ID
+end
+
+get '/' do
+  puts @user, @user_id
   haml :top
 end
 
-get '/login' do
-  session[:login_key] = SecureRandom.hex(16);
-  redirect client.auth_code.authorize_url(
-    redirect_uri: redirect_uri,
-    state: session[:login_key])
-end
-
-get '/logout' do
-  session.delete(:user)
-  haml :logout
+get '/setting' do
+  haml :setting
 end
 
 get '/login/denied' do
   haml :denied
 end
 
-get '/auth/callback' do
+get '/login/callback' do
   begin
     raise unless params[:code]
     raise unless params[:state] == session[:login_key]
@@ -206,7 +167,7 @@ end
 
 def redirect_uri
   uri = URI.parse(request.url)
-  uri.path = '/auth/callback'
+  uri.path = '/login/callback'
   uri.query = nil
   uri.to_s
 end
@@ -238,18 +199,16 @@ __END__
     %div.navbar.navbar-default.navbar-fixed-top
       %div.header
         %a.navbar-brand{:href => "/"} Chat Room Logger
-        %ul.nav.navbar-nav.pull-right
-          - if @user
+        - if @user
+          %ul.nav.navbar-nav.pull-right
             %li.dropdown
               %a.dropdown-toggle.active#user{:role => "button", :'data-toggle' => "dropdown"}
                 = "#{@user} さん"
                 %span.caret
-              %ul.dropdown-menu{:role => "menu", :'aria-lablledby' => "user"}
-                %li{:role => "presentation"}
-                  %a{:role => "menuitem", :href => "/logout"} Logout
-          - else
-            %li.active
-              %a{:href => "/login"} Login
+              - if @user_id != DB::GUEST_ID
+                %ul.dropdown-menu{:role => "menu", :'aria-lablledby' => "user"}
+                  %li{:role => "presentation"}
+                    %a{:role => "menuitem", :href => "/setting"} Setting
 
     %div.container#content
       = yield
@@ -270,11 +229,8 @@ __END__
                 - msgs.each do |m|
                   %li= "#{m[:from]}: #{m[:text]}"
 
-- else
-  %p ログインしてください。
+@@setting
+%p ユーザ設定画面です。
 
 @@denied
 %p Access Denied.
-
-@@logout
-%p ログアウトしました。
