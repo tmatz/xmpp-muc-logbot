@@ -127,13 +127,20 @@ module DB
 
 end
 
-enable :sessions
+configure do
+  enable :sessions
+end
 
 CLIENT = "xmpp-muc-logbot"
 CLIENT_SECRET = "xmpp-muc-logbot-secret"
 
 def client
-  $client ||= OAuth2::Client.new(CLIENT, CLIENT_SECRET, site: 'http://localhost:4000/')
+  $client ||= OAuth2::Client.new(
+    CLIENT,
+    CLIENT_SECRET,
+    site: 'http://localhost:4000/',
+    connection_opts: { proxy: { uri: '', user: '', password: '' } }
+    )
 end
 
 before %r{^(?!/login)} do
@@ -147,7 +154,6 @@ before %r{^(?!/login)} do
 end
 
 get '/' do
-  puts @user, @user_id
   haml :top
 end
 
