@@ -1,0 +1,10 @@
+%h2 ユーザ設定
+%form{:role => "form", :method => 'post', :action => '/setting'}
+  %input{:type => 'hidden', :name => 'user', :value => "#{@user}"}
+  .form-group
+    %label{:for => 'mail'} 一日のまとめをメールで受信します。
+    .input-group#mail
+      %span.input-group-addon
+        %input{:type => "checkbox", :name => "mail"}
+      %input.form-control{:type => "text", :name => "address", :value => "#{@user}@hallab.co.jp"}
+  %button.btn.btn-default.disabled{:type => "submit", :value => "submit"} 設定

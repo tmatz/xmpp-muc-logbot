@@ -1,0 +1,16 @@
+- if @user
+  %div
+    %label.checkbox
+      %input{:type => "checkbox", :'ng-model' => "oneAtATime"} Open only one at a time
+    %accordion{:'close-others' => "oneAtATime"}
+      - DB::rooms.each do |r|
+        - room_id = r[:id]
+        - if DB::readable? @user_id, room_id
+          - msgs = DB::messages.where(:room_id => room_id)
+          %accordion-group
+            %accordion-heading
+              = "#{r[:name]}"
+              %span.badge.pull-right= "#{msgs.count}"
+            %ul
+              - msgs.each do |m|
+                %li= "[#{m[:mtime]}] #{m[:from]}: #{m[:text]}"
