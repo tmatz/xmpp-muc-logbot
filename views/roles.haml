@@ -1,0 +1,18 @@
+﻿%h1 Roles
+%table.table.table-striped
+  %tr
+    %td #
+    %td Name
+    %td
+  - @entries.each do |e|
+    %tr
+      %td= "#{e.id}"
+      %td= "#{e.name}"
+      %td
+        %a{:href => "/admin/roles/#{e.id}"} Edit
+
+%form{:role => "form", :method => "post", :action => "/admin/roles"}
+  %div.form-group
+    %label{:for => "name"} Name
+    %input.form-control{:type => "text", :id => "name", :name => "name", :placeholder => "role name"}
+    %button.btn.btn-default{:type => "submit"} New

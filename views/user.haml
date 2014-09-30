@@ -1,0 +1,23 @@
+﻿%h1 User
+%form{:role => "form", :method => "post", :action => "/admin/users/#{@user.id}"}
+  %div.form-group
+    %label{:for => "name"} Name
+    %input.form-control#name{:type => "text", :name => "name", :placeholder => "user name", :value => "#{@user.name}"}
+    %label{:for => 'mail'} 一日のまとめをメールで受信します
+    .input-group#mail
+      - send_mail = (!@setting.nil? and @setting.send_mail != 0)? true : false
+      - mail_address = (@setting.nil? or @setting.mail_address == "") ? "#{@user.name}@hallab.co.jp" : @setting.mail_address
+      %span.input-group-addon
+        %input{:type => "checkbox", :name => "send_mail", :value => "1", :checked => send_mail}
+      %input.form-control{:type => "text", :name => "mail_address", :value => mail_address}
+    %label Roles
+    - Role.all.each do |r|
+      - checked = !UserRole[user_id: @user.id, role_id: r.id, join: 1].nil?
+      .input-group
+        %span.input-group-addon
+          %input{:type => "checkbox", :name => "role_#{r.id}", :value => "1", :checked => checked}
+        %span= r.name
+
+    %button.btn{:type => "submit", :name => "_method", :value => "put"} Submit
+    %button.btn{:type => "submit", :name => "_method", :value => "delete"} Delete
+    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "post"} Cancel

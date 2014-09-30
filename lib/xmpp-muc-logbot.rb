@@ -1,13 +1,7 @@
 #!/usr/bin/env ruby
 #! coding: utf-8
 
-require 'eventmachine'
-require 'sinatra/base'
-require 'thin'
 require 'oauth2'
-require 'json'
-require 'haml'
-require 'sass'
 require 'sequel'
 require 'sqlite3'
 require 'blather/client/dsl'
@@ -19,27 +13,26 @@ def log *message
   end
 end
 
-module DB
-  @db = Sequel.connect('sqlite://store.db')
+module Storage
 
   GUEST_ID = 1
 
   def self.get_user_id(username)
-    @db[:users].where(:name => username).get(:id)
+    DB[:users].where(:name => username).get(:id)
   end
 
   def self.readable?(user_id, room_id)
-    ! @db[:userroles].where(:user_id => user_id, :join => 1).
+    ! DB[:userroles].where(:user_id => user_id, :join => 1).
       join(:permissions, :role_id => :role_id).
       where(:room_id => room_id, :readable => 1).empty?
   end
 
   def self.rooms
-    @rooms ||= @db[:rooms]
+    @rooms ||= DB[:rooms]
   end
 
   def self.messages
-    @messages ||= @db[:messages]
+    @messages ||= DB[:messages]
   end
 end
 
@@ -159,7 +152,7 @@ module MucBot
   message :groupchat?, :body, delay: nil do |m|
     room = @rooms[m.from.stripped.to_s]
     if room
-      DB.messages.insert(
+      Storage.messages.insert(
         from: m.from.resource,
         text: m.body,
         mtime: Time.now,

@@ -1,0 +1,8 @@
+﻿%h1 Role
+%form{:role => "form", :method => "post", :action => "/admin/roles/#{@entry.id}"}
+  %div.form-group
+    %label{:for => "name"} Name
+    %input.form-control{:type => "text", :name => "name", :placeholder => "role name", :value => "#{@entry.name}"}
+    %button.btn{:type => "submit", :name => "_method", :value => "put"} Submit
+    %button.btn{:type => "submit", :name => "_method", :value => "delete"} Delete
+    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "post"} Cancel

@@ -22,13 +22,13 @@
     %div.navbar.navbar-default.navbar-fixed-top
       %div.header
         %a.navbar-brand{:href => "/"} Chat Room Logger
-        - if @user
+        - if @user_name
           %ul.nav.navbar-nav.pull-right
             %li.dropdown
               %a.dropdown-toggle.active#user{:role => "button", :'data-toggle' => "dropdown"}
-                = "#{@user} さん"
+                = "#{@user_name} さん"
                 %span.caret
-              - if @user_id != DB::GUEST_ID
+              - if @user_id != Storage::GUEST_ID
                 %ul.dropdown-menu{:role => "menu", :'aria-lablledby' => "user"}
                   %li{:role => "presentation"}
                     %a{:role => "menuitem", :href => "/setting"} Setting
