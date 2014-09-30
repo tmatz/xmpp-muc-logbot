@@ -24,68 +24,6 @@ module DB
 
   GUEST_ID = 1
 
-  private
-
-  @db.create_table! :users do
-    primary_key :id
-    String :name, null: false, unique: true
-    int :admin
-    timestamp :mtime
-  end
-
-  @db.create_table! :roles do
-    primary_key :id
-    String :name, null: false, unique: true
-    timestamp :mtime
-  end
-
-  @db.create_table! :userroles do
-    primary_key :id
-    int :user_id
-    int :role_id
-    int :join
-    timestamp :mtime
-  end
-
-  @db.create_table! :permissions do
-    primary_key :id
-    int :role_id
-    int :room_id
-    int :readable
-    timestamp :mtime
-  end
-
-  @db.create_table! :rooms do
-    primary_key :id
-    String :name, null: false
-    timestamp :mtime
-  end
-
-  @db.create_table? :messages do
-    primary_key :id
-    String :from
-    String :text
-    int :room_id
-    timestap :mtime
-  end
-
-  @db.create_table? :usersetting do
-    primary_key :id
-    int :user_id, unique: true
-    int :send_mail
-    String :mail_address
-    timestap :mtime
-  end
-
-  @db[:users].insert(name: 'guest', admin: 0, mtime: Time.now)
-
-  @db[:roles].insert(name: 'guest', mtime: Time.now)
-  @db[:roles].insert(name: 'user', mtime: Time.now)
-
-  @db[:userroles].insert(user_id: 1, role_id: 1, join: 1, mtime: Time.now)
-
-  public
-
   def self.get_user_id(username)
     @db[:users].where(:name => username).get(:id)
   end
