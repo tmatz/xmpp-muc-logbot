@@ -84,22 +84,6 @@ module DB
 
   @db[:userroles].insert(user_id: 1, role_id: 1, join: 1, mtime: Time.now)
 
-
-  @db[:users].insert(name: 'matsu', admin: 1, mtime: Time.now)
-
-  @db[:userroles].insert(user_id: 2, role_id: 2, join: 1, mtime: Time.now)
-
-  @db[:rooms].insert(name: 'public', mtime: Time.now)
-  @db[:rooms].insert(name: 'room1', mtime: Time.now)
-  @db[:rooms].insert(name: 'room2', mtime: Time.now)
-  @db[:rooms].insert(name: 'room3', mtime: Time.now)
-
-  @db[:permissions].insert(role_id: 1, room_id: 1, readable: 1, mtime: Time.now)
-  @db[:permissions].insert(role_id: 2, room_id: 1, readable: 1, mtime: Time.now)
-  @db[:permissions].insert(role_id: 2, room_id: 2, readable: 1, mtime: Time.now)
-  @db[:permissions].insert(role_id: 2, room_id: 3, readable: 1, mtime: Time.now)
-  @db[:permissions].insert(role_id: 2, room_id: 4, readable: 1, mtime: Time.now)
-
   public
 
   def self.get_user_id(username)
