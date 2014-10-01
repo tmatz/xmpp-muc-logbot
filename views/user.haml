@@ -1,4 +1,8 @@
-﻿%h1 User
+﻿%h1
+  %a{:href => '/admin'} Admin
+  %span /
+  %a{:href => '/admin/users'} Users
+  %span= "/ #{@user.id}"
 %form{:role => "form", :method => "post", :action => "/admin/users/#{@user.id}"}
   %div.form-group
     %label{:for => "name"} Name
@@ -18,6 +22,5 @@
           %input{:type => "checkbox", :name => "role_#{r.id}", :value => "1", :checked => checked}
         %span= r.name
 
-    %button.btn{:type => "submit", :name => "_method", :value => "put"} Submit
+    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "put"} Submit
     %button.btn{:type => "submit", :name => "_method", :value => "delete"} Delete
-    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "post"} Cancel

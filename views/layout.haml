@@ -28,10 +28,14 @@
               %a.dropdown-toggle.active#user{:role => "button", :'data-toggle' => "dropdown"}
                 = "#{@user_name} さん"
                 %span.caret
-              - if @user_id != Storage::GUEST_ID
+              - if !User[name: @user_name].nil? or is_admin?(@user_name)
                 %ul.dropdown-menu{:role => "menu", :'aria-lablledby' => "user"}
-                  %li{:role => "presentation"}
-                    %a{:role => "menuitem", :href => "/setting"} Setting
+                  - if !User[name: @user_name].nil?
+                    %li{:role => "presentation"}
+                      %a{:role => "menuitem", :href => "/setting"} Setting
+                  - if is_admin?(@user_name)
+                    %li{:role => "presentation"}
+                      %a{:role => "menuitem", :href => "/admin"} Admin
 
     %div.container#content
       = yield

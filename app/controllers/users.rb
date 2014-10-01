@@ -4,14 +4,6 @@
     haml :users
   end
 
-  get '/admin/users/:id' do
-    @id = params[:id]
-    @user = User[@id]
-    @setting = UserSetting[user_id: @id]
-    not_found("") if @user.nil?
-    haml :user
-  end
-
   post '/admin/users' do
     user = User.create({
       name: params[:name],
@@ -23,18 +15,22 @@
       mail_address: params[:mail_address],
       mtime: Time.now
     })
-    redirect '/admin/users'
+    redirect to('/admin/users')
   end
 
-  post '/admin/users/:id' do
-    redirect "/admin/users"
+  get '/admin/users/:id' do
+    @id = params[:id]
+    @user = User[@id]
+    @setting = UserSetting[user_id: @id]
+    not_found("") if @user.nil?
+    haml :user
   end
 
   put '/admin/users/:id' do
+    id = params[:id]
+    user = User[id]
+    not_found("") if user.nil?
     DB.transaction do
-      id = params[:id]
-      user = User[id]
-      not_found("") if user.nil?
       user.name = params[:name]
       user.mtime = Time.now
       user.save
@@ -56,6 +52,7 @@
       UserRole.filter(user_id: id).each do |r|
         join = params[:"role_#{r.role_id}"] ? 1 : 0
         if (r.join != join)
+          r.join = join
           r.mtime = Time.now
           r.save
         end
@@ -76,16 +73,16 @@
         end
       end
     end
-    redirect "/admin/users"
+    redirect to("/admin/users")
   end
 
   delete '/admin/users/:id' do
+    id = params[:id]
     DB.transaction do
-      id = params[:id]
       User.filter(id: id).delete
       UserSetting.filter(user_id: id).delete
       UserRole.filter(user_id: id).delete
     end
-    redirect "/admin/users"
+    redirect to("/admin/users")
   end
 end

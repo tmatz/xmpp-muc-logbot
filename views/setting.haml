@@ -1,10 +1,12 @@
+- setting = UserSetting[user_id: @login_user.id]
+- send_mail = setting ? setting.send_mail != 0 : false
+- mail_address = setting ? setting.mail_address : "#{@user_name}@hallab.co.jp"
 %h2 ユーザ設定
 %form{:role => "form", :method => 'post', :action => '/setting'}
-  %input{:type => 'hidden', :name => 'user', :value => "#{@user_name}"}
   .form-group
     %label{:for => 'mail'} 一日のまとめをメールで受信します。
     .input-group#mail
       %span.input-group-addon
-        %input{:type => "checkbox", :name => "mail"}
-      %input.form-control{:type => "text", :name => "address", :value => "#{@user_name}@hallab.co.jp"}
-  %button.btn.btn-default.disabled{:type => "submit", :value => "submit"} 設定
+        %input{:type => "checkbox", :name => "send_mail", :checked => send_mail}
+      %input.form-control{:type => "text", :name => "mail_address", :value => mail_address}
+  %button.btn.btn-default{:type => "submit", :value => "submit"} 設定

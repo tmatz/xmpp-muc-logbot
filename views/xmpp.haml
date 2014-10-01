@@ -1,0 +1,37 @@
+﻿%h1
+  %a{:href => '/admin'} Admin
+  %span /
+  %a{:href => '/admin/xmpps'} XMPP
+  %span= "/ #{@xmpp.id}"
+%form{:role => "form", :method => "post", :action => "/admin/xmpps/#{@xmpp.id}"}
+  %div.form-group
+    %label{:for => "jid"} JID
+    %input.form-control#jid{:type => "text", :name => "jid", :placeholder => "jid", :value => "#{@xmpp.jid}"}
+    %label{:for => "nick"} Nick
+    %input.form-control#nick{:type => "text", :name => "nick", :placeholder => "nick", :value => "#{@xmpp.nick}"}
+    %label{:for => "password"} Password
+    %input.form-control#password{:type => "password", :name => "password", :placeholder => "password", :value => "#{@xmpp.password}"}
+    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "put"} Submit
+    %button.btn{:type => "submit", :name => "_method", :value => "delete"} Delete
+
+%h3 Rooms
+%table.table.table-striped
+  %tr
+    %td #
+    %td Name
+    %td
+  - Room.filter(xmpp_id: @xmpp.id).each do |room|
+    %tr
+      %td= "#{room.id}"
+      - if room.nick and room.nick != ""
+        %td= "#{room.jid}/#{room.nick}"
+      - else
+        %td= "#{room.jid}"
+      %td
+        %a{:href => "/admin/xmpps/#{@xmpp.id}/rooms/#{room.id}"} Edit
+
+%form{:role => "form", :method => "post", :action => "/admin/xmpps/#{@xmpp.id}"}
+  %div.form-group
+    %label{:for => "jid"} Name
+    %input.form-control#jid{:type => "text", :name => "jid", :placeholder => "jid"}
+    %button.btn.btn-default{:type => "submit"} New

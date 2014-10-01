@@ -1,6 +1,8 @@
 *.swp
+*.bak
 store.db
 .sass-cache
 node_modules
 bower_components
 *.log
+app.rb

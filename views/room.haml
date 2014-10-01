@@ -1,0 +1,17 @@
+﻿%h1
+  %a{:href => '/admin'} Admin
+  %span /
+  %a{:href => '/admin/xmpps'} XMPPs
+  %span /
+  %a{:href => "/admin/xmpps/#{@xmpp.id}"}= @xmpp.id.to_s
+  %span / Room
+%form{:role => "form", :method => "post", :action => "/admin/xmpps/#{@xmpp.id}/rooms/#{@room.id}"}
+  %div.form-group
+    %label{:for => "jid"} JID
+    %input.form-control#jid{:type => "text", :name => "jid", :placeholder => "jid", :value => "#{@room.jid}"}
+    %label{:for => "nick"} Nick
+    %input.form-control#nick{:type => "text", :name => "nick", :placeholder => "nick", :value => "#{@room.nick}"}
+    %label{:for => "password"} Password
+    %input.form-control#password{:type => "password", :name => "password", :placeholder => "password", :value => "#{@room.password}"}
+    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "put"} Submit
+    %button.btn{:type => "submit", :name => "_method", :value => "delete"} Delete

@@ -4,7 +4,7 @@ class Xmpp < Sequel::Model
     primary_key :id, :integer
     column :jid, :text, null: false
     column :nick, :text, null: false
-    column :password, :text
+    column :password, :text, null: false
     column :mtime, :timestamp
   end
 

@@ -1,8 +1,18 @@
-﻿%h1 Role
+﻿%h1
+  %a{:href => '/admin'} Admin
+  %span /
+  %a{:href => '/admin/roles'} Roles
+  %span= "/ #{@entry.id}"
 %form{:role => "form", :method => "post", :action => "/admin/roles/#{@entry.id}"}
   %div.form-group
     %label{:for => "name"} Name
     %input.form-control{:type => "text", :name => "name", :placeholder => "role name", :value => "#{@entry.name}"}
-    %button.btn{:type => "submit", :name => "_method", :value => "put"} Submit
+    %label Permissions
+    - Room.all.each do |room|
+      - checked = !Permission[role_id: @entry.id, room_id: room.id, readable: 1].nil?
+      .input-group
+        %span.input-group-addon
+          %input{:type => "checkbox", :name => "perm_#{room.id}", :value => "1", :checked => checked}
+        %span= "#{room.jid}/#{room.nick}"
+    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "put"} Submit
     %button.btn{:type => "submit", :name => "_method", :value => "delete"} Delete
-    %button.btn.btn-default{:type => "submit", :name => "_method", :value => "post"} Cancel

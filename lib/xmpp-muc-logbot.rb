@@ -15,16 +15,24 @@ end
 
 module Storage
 
-  GUEST_ID = 1
+  private
+
+  GUEST_ROLE = 1
+
+  public
 
   def self.get_user_id(username)
     DB[:users].where(:name => username).get(:id)
   end
 
-  def self.readable?(user_id, room_id)
-    ! DB[:userroles].where(:user_id => user_id, :join => 1).
-      join(:permissions, :role_id => :role_id).
-      where(:room_id => room_id, :readable => 1).empty?
+  def self.readable?(user_name, room_id)
+    if user = User[name: user_name]
+      ! DB[:userroles].where(:user_id => user.id, :join => 1).
+        join(:permissions, :role_id => :role_id).
+        where(:room_id => room_id, :readable => 1).empty?
+    else
+      ! DB[:permissions].where(:role_id => GUEST_ROLE, :room_id => room_id, :readable => 1).empty?
+    end
   end
 
   def self.rooms
@@ -191,7 +199,7 @@ module OAuth2
           params[:code],
           scope: 'user',
           redirect_uri: redirect_uri)
-        puts 'TOKEN', token.inspect
+        #puts 'TOKEN', token.inspect
         session[:user] = token.token
       rescue => err
         session[:user] = nil

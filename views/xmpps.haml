@@ -1,0 +1,23 @@
+﻿%h1
+  %a{:href => '/admin'} Admin
+  %span / XMPP
+%table.table.table-striped
+  %tr
+    %td #
+    %td Name
+    %td
+  - Xmpp.all.each do |e|
+    %tr
+      %td= "#{e.id}"
+      - if e.nick and e.nick != ""
+        %td= "#{e.jid}/#{e.nick}"
+      - else
+        %td= "#{e.jid}"
+      %td
+        %a{:href => "/admin/xmpps/#{e.id}"} Edit
+
+%form{:role => "form", :method => "post", :action => "/admin/xmpps"}
+  %div.form-group
+    %label{:for => "jid"} Name
+    %input.form-control#jid{:type => "text", :name => "jid", :placeholder => "jid"}
+    %button.btn.btn-default{:type => "submit"} New

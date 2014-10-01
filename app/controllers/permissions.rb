@@ -28,6 +28,6 @@
     end
     @entry[:mtime] = Time.now
     @entry.save
-    redirect "/permissions/#{@entry[:id]}"
+    redirect to("/permissions/#{@entry[:id]}")
   end
 end
