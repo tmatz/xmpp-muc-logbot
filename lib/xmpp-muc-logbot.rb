@@ -109,14 +109,18 @@ class MucBot
               if s.error?
                 EM.next_tick do
                   close
-                  run
+                  EM.next_tick do
+                    run
+                  end
                 end
               end
             end
           rescue => err
             log "MucBot.ping", err.insert, err.backtrace
             close
-            run
+            EM.next_tick do
+              run
+            end
           end
         end
         @rooms.each_value do |room|
@@ -133,8 +137,10 @@ class MucBot
         end
         @periodic_joins.clear
 
-        @run_timer = EM.add_timer(30) do
-          run
+        if @run
+          @run_timer = EM.add_timer(30) do
+            run
+          end
         end
       end
 
@@ -193,6 +199,7 @@ class MucBot
 
   def run
     log 'MucBot.run'
+    @run = true
     @run_timer = nil
     @ping_timer = nil
     begin
@@ -206,6 +213,7 @@ class MucBot
   end
 
   def close
+    @run = false
     if @run_timer
       EM.cancel_timer(@run_timer)
       @run_timer = nil
