@@ -85,7 +85,9 @@ class MucBot
 
   def self.rerun
     stop
-    run
+    EM.add_timer(5) do
+      run
+    end
   end
 
   RoomInfo = Struct.new(:id, :jid, :nick, :block)
@@ -107,9 +109,9 @@ class MucBot
             client.write_with_handler ping do |s|
               log "PING handler", s.inspect
               if s.error?
-                EM.next_tick do
-                  close
-                  EM.next_tick do
+                close
+                if @run
+                  EM.add_timer(30) do
                     run
                   end
                 end
@@ -118,7 +120,7 @@ class MucBot
           rescue => err
             log "MucBot.ping", err.insert, err.backtrace
             close
-            EM.next_tick do
+            EM.add_timer(30) do
               run
             end
           end
@@ -142,6 +144,8 @@ class MucBot
             run
           end
         end
+        # continue EM loop
+        true
       end
 
       @client.register_handler :iq do |i|
