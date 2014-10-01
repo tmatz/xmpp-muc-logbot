@@ -107,7 +107,7 @@ class MucBot
           ping = Blather::Stanza::Iq::Ping.new
           begin
             client.write_with_handler ping do |s|
-              log "PING handler", s.inspect
+              #log "PING handler", s.inspect
               if s.error?
                 close
                 if @run
