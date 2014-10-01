@@ -3,6 +3,14 @@
     haml :xmpps
   end
 
+  get '/admin/xmpps/rerun' do
+    begin
+      MucBot.rerun
+    rescue
+    end
+    redirect to('/admin/xmpps')
+  end
+
   post '/admin/xmpps' do
     @xmpp = Xmpp.create({
       jid: params[:jid],

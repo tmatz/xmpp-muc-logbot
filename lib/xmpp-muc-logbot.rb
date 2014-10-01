@@ -54,22 +54,120 @@ class Blather::Stream
   end
 end
 
-module MucBot
-  extend Blather::DSL
+class MucBot
+  def self.bots
+    @bots ||= Hash.new
+  end
 
-  Room = Struct.new(:id, :jid, :nick, :block)
+  def self.run
+    if bots.empty?
+      Xmpp.all.each do |xmpp|
+        bots[xmpp.id] = bot = MucBot.new
+        bot.setup "#{xmpp.jid}/#{xmpp.nick}", xmpp.password
+        Room.filter(xmpp_id: xmpp.id).each do |room|
+          bot.join_room room.id, room.jid, room.nick
+        end
+      end
+      bots.each do |k,v|
+        v.run
+      end
+    end
+  end
 
-  @rooms = Hash.new
-  @periodic_joins = Hash.new
+  def self.stop
+    if ! bots.empty?
+      bots.each do |k,v|
+        v.close
+      end
+      bots.clear
+    end
+  end
 
-  def self.join_room(id, jid, nick, &block)
-    @rooms[jid] = room = Room.new(id, jid, nick, block)
+  def self.rerun
+    stop
+    run
+  end
+
+  RoomInfo = Struct.new(:id, :jid, :nick, :block)
+
+  def initialize
+    @rooms = Hash.new
+    @periodic_joins = Hash.new
+  end
+
+  def client
+    unless @client
+      @client = Blather::Client.new
+
+      @client.register_handler :ready do
+        log "connect #{@client.jid}"
+        @ping_timer = EM.add_periodic_timer(30) do
+          ping = Blather::Stanza::Iq::Ping.new
+          begin
+            client.write_with_handler ping do |s|
+              log "PING handler", s.inspect
+              if s.error?
+                EM.next_tick do
+                  close
+                  run
+                end
+              end
+            end
+          rescue => err
+            log "MucBot.ping", err.insert, err.backtrace
+            close
+            run
+          end
+        end
+        @rooms.each_value do |room|
+          check_room_presence_and_join(room)
+        end
+      end
+
+      @client.register_handler :disconnected do
+        log "MucBot.disconnected"
+        EM.cancel_timer(@ping_timer) if @ping_timer
+        @ping_timer = nil
+        @periodic_joins.each do |k,v|
+          EM.cancel_timer v
+        end
+        @periodic_joins.clear
+
+        @run_timer = EM.add_timer(30) do
+          run
+        end
+      end
+
+      @client.register_handler :iq do |i|
+        log 'IQ', i
+      end
+
+      @client.register_handler :message, :groupchat?, :body, delay: nil do |m|
+        room = @rooms[m.from.stripped.to_s]
+        if room
+          Storage.messages.insert(
+            from: m.from.resource,
+            text: m.body,
+            room: m.from.stripped.to_s,
+            mtime: Time.now)
+        end
+      end
+    end
+    @client
+  end
+
+  def setup *args
+    client.setup(*args)
+  end
+
+  def join_room(id, jid, nick, &block)
+    @rooms[jid] = room = RoomInfo.new(id, jid, nick, block)
     if client.connected?
       check_room_presence_and_join(room)
     end
   end
 
-  def self.exit_room(id)
+  def exit_room(id)
     @rooms.delete_if do |jid, room|
       if room.id == id
         if client.connected?
@@ -83,7 +181,9 @@ module MucBot
           end
           log "exit #{room.jid}/#{room.nick}."
         end
-        @periodic_joins.delete(jid)
+        if timer = @periodic_joins.delete(jid)
+          EM.cancel_timer timer
+        end
         true
       else
         false
@@ -91,31 +191,62 @@ module MucBot
     end
   end
 
-  def self.run!
-    log 'MucBot.run!'
+  def run
+    log 'MucBot.run'
+    @run_timer = nil
+    @ping_timer = nil
     begin
       client.run
     rescue => err
-      log 'MucBot RUN', err.inspect, err.backtrace
-      EM.add_timer(30) do
-        MucBot.run
+      log 'MucBot.run', err.inspect, err.backtrace
+      @run_timer = EM.add_timer(30) do
+        run
       end
     end
   end
 
+  def close
+    if @run_timer
+      EM.cancel_timer(@run_timer)
+      @run_timer = nil
+    end
+    if @ping_timer
+      EM.cancel_timer(@ping_timer)
+      @ping_timer = nil
+    end
+    client.close
+  end
+
+  def pubsub
+    @pubsub ||= Blather::DSL::PubSub.new(client, client.jid.domain)
+  end
+
   private
 
-  def self.check_room_presence_and_join(room)
-    log 'MucBot.check_room_presence_and_join'
+  def join(room, service, nickname = nil)
+    join = Blather::Stanza::Presence::MUC.new
+    join.to = if nickname
+      "#{room}@#{service}/#{nickname}"
+    else
+      "#{room}/#{service}"
+    end
+    client.write join
+  end
+
+  def check_room_presence_and_join(room)
+    #log 'MucBot.check_room_presence_and_join'
     begin
       pubsub.node nil, room.jid do |info|
-        log 'DISCO', info
+        #log 'DISCO', info
         if info.error?
           log "ROOM DOES NOT EXISTS #{room.jid}"
         else
           begin
             join room.jid, room.nick
             log "join #{room.jid}/#{room.nick}."
+            @periodic_joins[room.jid] = EM.add_periodic_timer(30 * 60) do
+              join room.id, room.nick
+            end
           rescue => err
             log 'JOIN', err.inspect, err.backtrace
           end
@@ -123,48 +254,6 @@ module MucBot
       end
     rescue => err
       log 'DISCO', err.inspect, err.backtrace
-    end
-  end
-
-  when_ready do
-    log "MucBot.when_ready"
-    @rooms.each_value do |room|
-      check_room_presence_and_join(room)
-    end
-  end
-
-  disconnected do
-    log "MucBot.disconnected"
-    @periodic_joins.each do |k,v|
-      EM.cancel_timer v
-    end
-    @periodic_joins.clear
-
-    EM.add_timer(30) do
-      MucBot.run
-    end
-  end
-
-  iq do |i|
-    log 'IQ', i
-  end
-
-  message do |m|
-    log 'MESSAGE', m
-  end
-
-  presence do |p|
-    log 'PRESENCE', p
-  end
-
-  message :groupchat?, :body, delay: nil do |m|
-    room = @rooms[m.from.stripped.to_s]
-    if room
-      Storage.messages.insert(
-        from: m.from.resource,
-        text: m.body,
-        mtime: Time.now,
-        room_id: room.id)
     end
   end
 end
