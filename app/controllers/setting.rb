@@ -10,7 +10,7 @@
       if setting
         DB.transaction do
           setting.send_mail = params[:send_mail] ? 1 : 0
-          setting.mail_address = params[:mail_address]
+          setting.mail_address = ''
           setting.mtime = Time.new
           setting.save
         end
@@ -19,7 +19,7 @@
           setting = UserSetting.create({
             user_id: @login_user.id,
             send_mail: params[:send_mail] ? 1 : 0,
-            mail_address: params[:mail_address],
+            mail_address: '',
             mtime: Time.new
           })
           setting.save

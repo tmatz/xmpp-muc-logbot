@@ -12,7 +12,7 @@
     setting = UserSetting.create({
       user_id: user.id,
       send_mail: params[:send_mail].nil? ? 0 : 1,
-      mail_address: params[:mail_address],
+      mail_address: '',
       mtime: Time.now
     })
     redirect to('/admin/users')
@@ -37,14 +37,14 @@
       setting = UserSetting[user_id: id]
       if !setting.nil?
         setting.send_mail = params[:send_mail] ? 1 : 0
-        setting.mail_address = params[:mail_address]
+        setting.mail_address = ''
         setting.mtime = Time.now
         setting.save
       else
         UserSetting.create({
           user_id: id,
           send_mail: params[:send_mail] ? 1 : 0,
-          mail_address: params[:mail_address],
+          mail_address: '',
           mtime: Time.now
         })
       end

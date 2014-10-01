@@ -3,10 +3,8 @@
 - mail_address = setting ? setting.mail_address : "#{@user_name}@hallab.co.jp"
 %h2 ユーザ設定
 %form{:role => "form", :method => 'post', :action => '/setting'}
-  .form-group
-    %label{:for => 'mail'} 一日のまとめをメールで受信します。
-    .input-group#mail
-      %span.input-group-addon
-        %input{:type => "checkbox", :name => "send_mail", :checked => send_mail}
-      %input.form-control{:type => "text", :name => "mail_address", :value => mail_address}
+  %div.checkbox
+    %label
+      %input{:type => "checkbox", :name => "send_mail", :checked => send_mail}
+      一日のまとめをメールで受信します。
   %button.btn.btn-default{:type => "submit", :value => "submit"} 設定
