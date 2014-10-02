@@ -26,6 +26,7 @@
     info.mtime = Time.now
     info.save
 
+    LogMail.schedule
     redirect to('/admin/logmail')
   end
 
