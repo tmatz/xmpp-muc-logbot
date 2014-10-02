@@ -385,13 +385,13 @@ module LogMail
             next if ! Storage.readable?(user.name, room.id)
 
             mail = Mail.new do
-              charset = 'utf-8'
               from LogMail.from_address
               to LogMail.user_mail_address(user.name)
               subject "[Chat Room Logger] #{now.strftime('%F')} #{room.jid}"
               body text
             end
 
+            mail.charset = 'utf-8'
             mail.deliver
           end
         end
