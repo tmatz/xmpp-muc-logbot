@@ -18,7 +18,7 @@ class Time
   end
 
   # self 後に min に指定した分になる Time を取得します。
-  def next_minite(min)
+  def next_minute(min)
     t = self.round
     u = Time.new(t.year, t.month, t.day, t.hour, min)
     if u <= t
@@ -28,8 +28,8 @@ class Time
   end
 
   # self 後に min に指定した分になる時間までの秒数を取得します。
-  def seconds_to_next_minite(min)
-    next_minite(min).to_i - self.to_i
+  def seconds_to_next_minute(min)
+    next_minute(min).to_i - self.to_i
   end
 
   # self 後に hour に指定した時になる Time を取得します。
