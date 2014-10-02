@@ -370,7 +370,7 @@ module LogMail
           next if msgs.empty?
 
           text = msgs.map { |m|
-            "[#{Time.parse(m.mtime).round.strftime('%F %T')}] #{m.from}: #{m.text}"
+            "(#{Time.parse(m.mtime).strftime('%F %T')}) #{m.from}: #{m.text}"
           }.join("\n")
 
           text = "MUC JID: #{room.jid.sub('@', ' @ ')}\nDate: #{now.strftime('%F')}\n\n" + text

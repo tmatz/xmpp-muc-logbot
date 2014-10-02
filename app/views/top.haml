@@ -25,6 +25,6 @@
                 - time = Time.parse(m[:mtime])
                 - ftime = time.strftime(time.today? ? '%T' : '%F %T')
                 %li
-                  %span.time= "[#{ftime}]"
+                  %span.time= "(#{ftime})"
                   %span.from= "#{m[:from]}:"
                   = "#{m[:text].gsub(/(\r\n|\r|\n)/, '<br />')}"
