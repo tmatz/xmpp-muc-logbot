@@ -4,6 +4,7 @@
 require 'oauth2'
 require 'sequel'
 require 'sqlite3'
+require 'active_support/time'
 require 'blather/client/dsl'
 
 require 'xmpp-muc-logbot/time'

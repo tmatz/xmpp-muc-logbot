@@ -1,3 +1,15 @@
+:sass
+  ul.messages
+    :list-style none
+  ul.messages li
+    :margin-bottom 0.5ex
+    :padding-left 2em
+    :text-indent -2em
+  ul.messages .time
+    :color gray
+  ul.messages .from
+    :color #2F4F4F
+
 - if @user_name
   %div
     %label.checkbox
@@ -10,6 +22,11 @@
             %accordion-heading
               = "#{room.jid}"
               %span.badge.pull-right= "#{msgs.count}"
-            %ul
+            %ul.messages
               - msgs.each do |m|
-                %li= "[#{m[:mtime]}] #{m[:from]}: #{m[:text]}"
+                - time = Time.parse(m[:mtime])
+                - ftime = time.strftime(time.today? ? '%T' : '%F %T')
+                %li
+                  %span.time= "[#{ftime}]"
+                  %span.from= "#{m[:from]}:"
+                  = "#{m[:text].gsub(/(\r\n|\r|\n)/, '<br />')}"
