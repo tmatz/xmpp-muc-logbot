@@ -6,6 +6,8 @@ require 'sequel'
 require 'sqlite3'
 require 'blather/client/dsl'
 
+require 'xmpp-muc-logbot/time'
+
 $lock = Mutex.new
 def log *message
   $lock.synchronize do
@@ -316,3 +318,102 @@ module OAuth2
   end
 
 end
+
+module LogMail
+  def self.from_address
+    "admin@sample.org"
+  end
+
+  def self.user_mail_address(username)
+    "#{username}@sample.org"
+  end
+
+  def self.latest_url
+    nil
+  end
+
+  def self.enabled?
+    info = LogmailInfo[1]
+    info and info.enable != 0 and info.hour != nil
+  end
+
+  def self.schedule
+    EM.cancel_timer(@timer) if @timer
+    @timer = nil
+
+    if enabled?
+      info = LogmailInfo[1]
+      hour = info.hour
+      @timer = EM.add_timer(Time.now.seconds_to_next_hour(hour)) do
+        scheduled_send_mail(hour)
+      end
+    end
+  end
+
+  def self.send_mail
+    return unless enabled?
+
+    EM.schedule do
+      begin
+        now = Time.now
+        Room.all.each do |room|
+          ignored =
+            DB[:permissions].where(room_id: room.id, readable: 1).
+            join(:roles, :id => :role_id).
+            join(:userroles, :role_id => :id).
+            join(:users, :id => :user_id).
+            empty?
+          next if ignored
+
+          msgs = Message.filter(room: room.jid)
+          next if msgs.empty?
+
+          text = msgs.map { |m|
+            "[#{Time.parse(m.mtime).round.strftime('%F %T')}] #{m.from}: #{m.text}"
+          }.join("\n")
+
+          text = "MUC JID: #{room.jid.sub('@', ' @ ')}\nDate: #{now.strftime('%F')}\n\n" + text
+
+          if latest_url = LogMail.latest_url
+            text += "\n\n最新はこちら\n#{latest_url}"
+          end
+
+          User.all.each do |user|
+            setting = UserSetting[user_id: user.id]
+            next if setting.nil? || setting.send_mail == 0
+            next if ! Storage.readable?(user.name, room.id)
+
+            mail = Mail.new do
+              charset = 'utf-8'
+              from LogMail.from_address
+              to LogMail.user_mail_address(user.name)
+              subject "[Chat Room Logger] #{now.strftime('%F')} #{room.jid}"
+              body text
+            end
+
+            mail.deliver
+          end
+        end
+        Message.dataset.delete
+      rescue => err
+        log 'MAIL', err.inspect, err.backtrace
+      end
+    end
+  end
+
+  private
+
+  def self.scheduled_send_mail(hour)
+    if enabled?
+      begin
+        send_mail
+      rescue
+      end
+
+      @timer = EM.add_timer(Time.now.seconds_to_next_hour(hour)) do
+        scheduled_send_mail(hour)
+      end
+    end
+  end
+end
+

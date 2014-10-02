@@ -1,0 +1,21 @@
+- enable = @info.enable != 0
+- hour = @info.hour.to_s
+%h1
+  %a{:href => '/admin'} Admin
+  %span / LogMail
+
+%h3 送信
+%a.btn.btn-default{:href => '/admin/logmail/send'} ただちに送信
+
+%h3 設定
+%form{:role => "form", :method => 'post', :action => '/admin/logmail'}
+  %div.form-group
+    %div.checkbox
+      %label
+        %input{:type => "checkbox", :name => "enable", :value => "1", :checked => enable}
+        一日のまとめをメールで送信します。
+    %div.form-group
+      %label{:for => 'hour'} 送信する時間
+      %input.form-control#hour{:type => "text", :name => "hour", :placeholder => "0 ~ 23", :value => hour}
+  %div.form-group
+    %button.btn.btn-default{:type => "submit", :value => "submit"} 設定
