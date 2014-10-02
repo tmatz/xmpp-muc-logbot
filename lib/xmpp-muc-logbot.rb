@@ -374,7 +374,7 @@ module LogMail
             "(#{Time.parse(m.mtime).strftime('%F %T')}) #{m.from}: #{m.text}"
           }.join("\n")
 
-          text = "MUC JID: #{room.jid.sub('@', ' @ ')}\nDate: #{now.strftime('%F')}\n\n" + text
+          text = "[Chat Room Logger] #{room.jid.sub('@', ' @ ')} (#{now.strftime('%F')})\n\n" + text
 
           if latest_url = LogMail.latest_url
             text += "\n\n最新はこちら\n#{latest_url}"
@@ -388,7 +388,7 @@ module LogMail
             mail = Mail.new do
               from LogMail.from_address
               to LogMail.user_mail_address(user.name)
-              subject "[Chat Room Logger] #{now.strftime('%F')} #{room.jid}"
+              subject "[Chat Room Logger] #{room.jid} (#{now.strftime('%F')})"
               body text
             end
 
