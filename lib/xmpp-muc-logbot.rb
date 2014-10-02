@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 #! coding: utf-8
 
+require 'cgi'
 require 'oauth2'
 require 'sequel'
 require 'sqlite3'

@@ -24,7 +24,8 @@
               - msgs.each do |m|
                 - time = Time.parse(m[:mtime])
                 - ftime = time.strftime(time.today? ? '%T' : '%F %T')
+                - text = CGI.escapeHTML(m[:text]).gsub(/(\r\n|\r|\n)/, '<br />')
                 %li
                   %span.time= "(#{ftime})"
                   %span.from= "#{m[:from]}:"
-                  = "#{m[:text].gsub(/(\r\n|\r|\n)/, '<br />')}"
+                  = text
