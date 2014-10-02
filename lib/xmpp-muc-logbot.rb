@@ -350,7 +350,7 @@ module LogMail
     end
   end
 
-  def self.send_mail
+  def self.send_mail(delete_log = false)
     return unless enabled?
 
     EM.schedule do
@@ -394,7 +394,7 @@ module LogMail
             mail.deliver
           end
         end
-        Message.dataset.delete
+        Message.dataset.delete if delete_log
       rescue => err
         log 'MAIL', err.inspect, err.backtrace
       end
@@ -406,7 +406,7 @@ module LogMail
   def self.scheduled_send_mail(hour)
     if enabled?
       begin
-        send_mail
+        send_mail(true)
       rescue
       end
 
