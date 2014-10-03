@@ -260,7 +260,7 @@ class MucBot
           begin
             join room.jid, room.nick
             log "join #{room.jid}/#{room.nick}."
-            @periodic_joins[room.jid] = EM.add_periodic_timer(30 * 60) do
+            @periodic_joins[room.jid] = EM.add_periodic_timer(1 * 60) do
               join room.id, room.nick
             end
           rescue => err
