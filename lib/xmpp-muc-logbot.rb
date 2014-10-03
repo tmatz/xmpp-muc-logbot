@@ -121,6 +121,7 @@ class MucBot
                   end
                 end
               end
+              false
             end
           rescue => err
             log "MucBot.ping", err.insert, err.backtrace
@@ -155,6 +156,7 @@ class MucBot
 
       @client.register_handler :iq do |i|
         log 'IQ', i
+        false
       end
 
       @client.register_handler :message, :groupchat?, :body, delay: nil do |m|
@@ -166,6 +168,7 @@ class MucBot
             room: m.from.stripped.to_s,
             mtime: Time.now)
         end
+        false
       end
     end
     @client
