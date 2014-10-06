@@ -155,8 +155,22 @@ class MucBot
         true
       end
 
+      @client.register_handler :error do |e|
+        log 'ERROR', e
+        false
+      end
+
       @client.register_handler :iq do |i|
-        log 'IQ', i
+        if i.error?
+          log 'IQ', i
+        end
+        false
+      end
+
+      @client.register_handler :presence do |p|
+        if p.error?
+          log 'PRESENCE', p
+        end
         false
       end
 
