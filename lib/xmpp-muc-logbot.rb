@@ -109,6 +109,7 @@ class MucBot
       @client.register_handler :ready do
         log "connect #{@client.jid}"
         @ping_timer = EM.add_periodic_timer(30) do
+          #@client.write @client.status
           ping = Blather::Stanza::Iq::Ping.new
           begin
             client.write_with_handler ping do |s|
@@ -265,7 +266,7 @@ class MucBot
             join room.jid, room.nick
             log "join #{room.jid}/#{room.nick}."
             @periodic_joins[room.jid] = EM.add_periodic_timer(1 * 60) do
-              join room.id, room.nick
+              join room.jid, room.nick
             end
           rescue => err
             log 'JOIN', err.inspect, err.backtrace
